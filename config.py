@@ -13,4 +13,5 @@ APP_EMAIL_SENDER = config["APP_EMAIL_SENDER"]
 APP_EMAIL_RECEIVER = config["APP_EMAIL_RECEIVER"]
 TIMEOUT = int(config["TIMEOUT"])
 
-FILE_NAME='parsed_data_with_filtered.xlsx'
+FILE_NAME='sanctioned-products.xlsx'
+SEND_TIME='08:30'
