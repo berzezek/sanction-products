@@ -6,6 +6,9 @@ from config import FILE_NAME, TIMEOUT, logger
 
 
 def parse_dual_use_goods():
+    """
+    Парсит таблицы с сайта и форматирует данные.
+    """
     # URL и заголовки
     url = 'https://traderadar.kz/tnved'
     headers = {
@@ -17,7 +20,7 @@ def parse_dual_use_goods():
     response = session.get(url, headers=headers)
 
     # Рендеринг JavaScript
-    response.html.render(timeout=120)
+    response.html.render(timeout=TIMEOUT)
 
     # Поиск всех таблиц
     tables = response.html.find('table')
@@ -30,14 +33,19 @@ def parse_dual_use_goods():
             rows = table.find('tr')
             for row in rows:
                 cells = row.find('td')
-                row_data = [cell.text.strip() for cell in cells]
-                if row_data:  # Сохраняем только непустые строки
+                # Очищаем данные от пустых строк и пробелов
+                row_data = [cell.text.strip() for cell in cells if cell.text.strip()]
+                
+                if row_data:  # Проверяем, что строка не пустая
                     if row_data[0].replace(',', '').isdigit():
-                        # Разделяем элементы, если первый элемент содержит запятую
-                        codes = row_data[0].split(',')  # Разделяем по запятой
+                        # Если первый элемент содержит запятые, разделяем
+                        codes = row_data[0].split(',')
                         for code in codes:
-                            # Создаём новый список для каждого кода
-                            data.append([code.strip()] + row_data[1:])
+                            formatted_row = [code.strip()] + row_data[1:]  # Форматируем строку
+                            data.append(formatted_row)  # Добавляем в список
+                    else:
+                        # Если кодов нет, просто добавляем строку
+                        data.append(row_data)
     else:
         logger.warning('Таблицы не найдены')
     
