@@ -14,9 +14,10 @@ from config import APP_EMAIL_PASS, APP_SMTP_SERVER, APP_EMAIL_SENDER, APP_EMAIL_
 current_time = datetime.now(pytz.timezone('Asia/Almaty')).strftime('%Y-%m-%d %H:%M:%S')
 
 def send_email():
+    logger.info("Отправка письма...")
     # Настройки почты
-    smtp_server = APP_SMTP_SERVER
-    smtp_port = 587  # Порт для TLS
+    smtp_server = APP_SMTP_SERVER  # Для Яндекса: 'smtp.yandex.com' или 'smtp.yandex.ru'
+    smtp_port = 465  # SSL-порт
     email_user = APP_EMAIL_SENDER
     email_password = APP_EMAIL_PASS
     recipient_email = APP_EMAIL_RECEIVER
@@ -38,6 +39,8 @@ def send_email():
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain'))
 
+    logger.info(f"Отправка письма на адрес {recipient_email}...")
+
     # Добавление файла во вложение
     try:
         with open(file_path, 'rb') as attachment:
@@ -52,8 +55,7 @@ def send_email():
         msg.attach(part)
 
         # Отправка письма
-        with smtplib.SMTP(smtp_server, smtp_port) as server:
-            server.starttls()  # Начало TLS
+        with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:  # Используем SMTP_SSL для SSL-соединения
             server.login(email_user, email_password)
             server.sendmail(email_user, recipient_email, msg.as_string())
             logger.info("Письмо успешно отправлено!")
