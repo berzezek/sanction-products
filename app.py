@@ -18,6 +18,8 @@ def job():
 
 schedule.every().day.at("08:30", "Asia/Tashkent").do(job)
 
+job()
+
 while True:
     schedule.run_pending()
     time.sleep(1)

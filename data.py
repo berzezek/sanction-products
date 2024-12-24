@@ -84,11 +84,11 @@ def create_xlsx(sanctioned_data, dual_use_data, filename=FILE_NAME):
         item.append('')
         item.append('')
         item.append('')
-        item.append("Санкционный")
+        item.append("Товары двойного назначения")
         ws.append(item)
 
     for item in dual_use_data:
-        item.append("Товары двойного назначения")
+        item.append("Санкционный")
         ws.append(item)
 
     # Сохраняем файл
