@@ -6,19 +6,20 @@ from data import create_xlsx, save_to_file, save_to_xlsx, process_data_correctly
 from parser import parse_dual_use_goods, parse_sanctioned
 from sender import send_email
 
-from config import SEND_TIME, logger
+from config import logger
+
+logger.info('Запуск приложения Docker')
 
 def job():
-    logger.info('Запуск приложения Docker')
+    logger.info('Запуск приложения')
     data_site1 = parse_dual_use_goods()
     data_site2 = parse_sanctioned()
     create_xlsx(filter_numeric_data(data_site2), process_data_correctly(data_site1))
     send_email()
     logger.info('Завершение работы приложения')
 
-schedule.every().day.at("08:30", "Asia/Tashkent").do(job)
+schedule.every(12).hours.do(job)
 
-job()
 
 while True:
     schedule.run_pending()
