@@ -26,6 +26,8 @@ def process_data_correctly(data):
     :return: Обработанный список
     """
     processed_data = []
+    
+    special_codes = {"4201", "8483", "8484", "8426"}  # Коды, требующие особой обработки
 
     for row in data:
         if len(row) < 5:  # Пропуск строк с недостаточным количеством элементов
@@ -42,33 +44,48 @@ def process_data_correctly(data):
             for code in codes:
                 code = code.strip()  # Убираем лишние пробелы
                 if code.isdigit() or code.replace(" ", "").isdigit():
-                    processed_data.append([
-                        code,  # Новый код
-                        row[1],  # Описание
-                        row[-3],  # -3 элемент
-                        row[-2],  # -2 элемент
-                        row[-1],  # -1 элемент
-                    ])
+                    if code in special_codes:
+                        processed_data.append([
+                            code,        # Код
+                            row[1],      # Описание ENG
+                            row[3],      # Страна → Наименование RUS
+                            row[4],      # Тип → Страна
+                            "Экспорт в РФ"  # Вид
+                        ])
+                    else:
+                        processed_data.append([
+                            code,        # Код
+                            row[1],      # Описание ENG
+                            row[-3],     # -3 элемент
+                            row[-2],     # -2 элемент
+                            row[-1],     # -1 элемент
+                        ])
         else:
-            # Проверяем, если элемент подходит под условия
             if first_element.isdigit() or first_element.replace(" ", "").isdigit():
-                processed_data.append([
-                    first_element.strip(),  # Убираем лишние пробелы
-                    row[1],  # Описание
-                    row[-3],  # -3 элемент
-                    row[-2],  # -2 элемент
-                    row[-1],  # -1 элемент
-                ])
+                if first_element in special_codes:
+                    processed_data.append([
+                        first_element.strip(),  # Код
+                        row[1],                # Описание ENG
+                        row[3],                # Страна → Наименование RUS
+                        row[4],                # Тип → Страна
+                        "Экспорт в РФ"         # Вид
+                    ])
+                else:
+                    processed_data.append([
+                        first_element.strip(),  # Код
+                        row[1],                # Описание ENG
+                        row[-3],               # -3 элемент
+                        row[-2],               # -2 элемент
+                        row[-1],               # -1 элемент
+                    ])
 
     return processed_data
 
 
-def create_xlsx(sanctioned_data, dual_use_data, filename=FILE_NAME):
+
+def create_xlsx(sanctioned_data, dual_use_data1, dual_use_data2, filename=FILE_NAME):
     """
-    Создает Excel-файл с объединенными данными.
-    :param sanctioned_data: Данные санкционных товаров
-    :param dual_use_data: Данные товаров двойного назначения
-    :param filename: Имя выходного файла
+    Создает Excel-файл с объединенными данными, сортируя сначала по 'Типу', затем по 'Стране'.
     """
     # Создаем новую книгу
     wb = Workbook()
@@ -79,32 +96,32 @@ def create_xlsx(sanctioned_data, dual_use_data, filename=FILE_NAME):
     headers = ["Код", "Наименование ENG", "Наименование RUS", "Страна", "Тип", "Вид"]
     ws.append(headers)
 
-    # Обработка данных
+    # Объединяем все данные в один список с пометкой типа
+    all_data = []
+    
     for item in sanctioned_data:
-        item.append('')
-        item.append('')
-        item.append('')
-        item.append("Товары двойного назначения")
+        all_data.append(item + ['', '', '', "Товары двойного назначения"])
+
+    for item in dual_use_data1:
+        all_data.append(item + ["Санкционный"])
+
+    for item in dual_use_data2:
+        all_data.append(item + ["Санкционный"])
+
+    # Сортируем сначала по 'Типу' (5-й индекс), затем по 'Стране' (3-й индекс)
+    all_data.sort(key=lambda x: (x[4], x[3]))
+
+    # Добавляем отсортированные данные в Excel
+    for item in all_data:
         ws.append(item)
 
-    for item in dual_use_data:
-        item.append("Санкционный")
-        ws.append(item)
+    # Устанавливаем автофильтр
+    ws.auto_filter.ref = ws.dimensions
 
     # Сохраняем файл
     wb.save(filename)
-    logger.info(f"Файл '{filename}' успешно создан!")
+    logger.info(f"Файл '{filename}' успешно создан и отсортирован!")
 
-
-def save_to_file(data, filename):
-    """
-    Сохраняет данные в файл.
-    :param data: Данные для сохранения
-    :param filename: Имя файла
-    """
-    with open(filename, 'w', encoding='utf-8') as file:
-        for item in data:
-            file.write(f"{item}\n")
 
 
 

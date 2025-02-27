@@ -5,12 +5,10 @@ from requests_html import HTMLSession
 from config import FILE_NAME, TIMEOUT, logger
 
 
-def parse_dual_use_goods():
+def parse_dual_use_goods(url):
     """
     Парсит таблицы с сайта и форматирует данные.
     """
-    # URL и заголовки
-    url = 'https://traderadar.kz/tnved'
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36'
     }
